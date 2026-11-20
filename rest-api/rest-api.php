@@ -33,9 +33,20 @@ class Custom_Group_Health_Plugin_Endpoints
     }
 
     public function update_practice( WP_REST_Request $request ) {
-        $params = $request->get_params();
+        $params = $request->get_url_params();
         $practice = esc_sql( $params['practice'] );
-        $group_id = esc_sql( $params['group_id'] );
+        $group_id = (int) $params['group_id'];
+
+        if ( !DT_Posts::can_update( 'groups', $group_id ) ) {
+            return new WP_Error( __METHOD__, __( 'You do not have permission to update this group.', 'custom-group-health-plugin' ), [ 'status' => 403 ] );
+        }
+
+        $items = get_option( 'custom_group_health_icons', [] );
+        $allowed_practices = is_array( $items ) ? array_column( $items, 'key' ) : [];
+        $allowed_practices[] = 'church_commitment';
+        if ( !in_array( $practice, $allowed_practices, true ) ) {
+            return new WP_Error( __METHOD__, __( 'Unknown group health practice.', 'custom-group-health-plugin' ), [ 'status' => 400 ] );
+        }
 
         //check if practice exists for that group_id and set it if it doesn't
         $args = array(
