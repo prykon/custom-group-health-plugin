@@ -373,6 +373,11 @@ class Custom_Group_Health_Plugin_Tab_General extends Disciple_Tools_Abstract_Men
             self::admin_notice( __( 'Error: Item image missing. Item was not created', 'custom-group-health-plugin' ), 'error' );
         }
 
+        if ( isset( $new_icon ) && ( !preg_match( '/^[a-z0-9-]+$/', $new_icon ) || !file_exists( dirname( __DIR__ ) . '/assets/images/' . $new_icon . '.svg' ) ) ) {
+            self::admin_notice( __( 'Error: Unknown item image. Item was not created', 'custom-group-health-plugin' ), 'error' );
+            return;
+        }
+
         if ( !empty( $_POST['new_label'] ) ) {
             $new_label = sanitize_text_field( wp_unslash( $_POST['new_label'] ) );
         } else {
@@ -750,6 +755,9 @@ class Custom_Group_Health_Plugin_Tab_Templates {
                                                 }
                                                 self::set_template( 'dt_default_template' );
                                             } else if ( isset( $_POST['set-twelve-practices'] ) ) {
+                                                if ( !isset( $_POST['set_template_nonce'] ) || !wp_verify_nonce( sanitize_key( $_POST['set_template_nonce'] ), 'set_template' ) ) {
+                                                    return;
+                                                }
                                                 self::set_template( 'twelve_practices_template' );
                                             }
                                             ?>
